@@ -52,6 +52,14 @@ export function initUI() {
   bindMiniPlayerEvents();
   bindFullPlayerEvents();
   setupStoreSubscriptions();
+
+  // ─── ИСПРАВЛЕНИЕ: select() срабатывает только при ИЗМЕНЕНИИ значения.
+  // Store стартует с screen=HOME, boot() диспатчит то же HOME → reducer
+  // возвращает тот же объект → select не видит изменения → showScreen('home')
+  // никогда не вызывается → экран остаётся opacity:0; visibility:hidden.
+  // Решение: вызываем showScreen явно при инициализации с текущим экраном.
+  showScreen(getState().screen);
+
   renderHomeScreen();
 }
 
@@ -104,8 +112,8 @@ function cacheDOMRefs() {
   DOM.searchEmpty     = qs('#search-empty');
   DOM.searchLoader    = qs('#search-loader');
 
-  // Home
-  DOM.homeContent     = qs('#home-content');
+  // Home — контейнер для секций треков
+  // DOM.homeContent не существует в HTML — используем DOM.homeSections напрямую
   DOM.homeSections    = qs('#home-sections');
   DOM.homeLoader      = qs('#home-loader');
 
@@ -235,9 +243,11 @@ function renderSearchResults(tracks, query) {
 // ─── Home Screen ──────────────────────────────────────────────────────────────
 
 async function renderHomeScreen() {
-  if (!DOM.homeContent) return;
+  // БАГ БЫЛ ЗДЕСЬ: проверялся DOM.homeContent, которого нет в HTML.
+  // Правильный контейнер — DOM.homeSections (id="home-sections").
+  if (!DOM.homeSections) return;
   DOM.homeLoader && (DOM.homeLoader.style.display = 'flex');
-  DOM.homeSections && (DOM.homeSections.innerHTML = '');
+  DOM.homeSections.innerHTML = '';
 
   try {
     const [trending, sections] = await Promise.all([
@@ -248,16 +258,15 @@ async function renderHomeScreen() {
     dispatch({ type: ACTION.SET_FEATURED_TRACKS, payload: trending });
 
     if (DOM.homeLoader) DOM.homeLoader.style.display = 'none';
-    if (DOM.homeSections) {
-      // Trending row
-      renderHomeSection('🔥 Trending Now', trending, DOM.homeSections);
 
-      // Genre sections
-      sections.forEach(({ genre, tracks }) => {
-        const sectionName = genre.charAt(0).toUpperCase() + genre.slice(1);
-        renderHomeSection(`✦ ${sectionName}`, tracks, DOM.homeSections);
-      });
-    }
+    // Trending row
+    renderHomeSection('🔥 Trending Now', trending, DOM.homeSections);
+
+    // Genre sections
+    sections.forEach(({ genre, tracks }) => {
+      const sectionName = genre.charAt(0).toUpperCase() + genre.slice(1);
+      renderHomeSection(`✦ ${sectionName}`, tracks, DOM.homeSections);
+    });
   } catch (err) {
     if (DOM.homeLoader) DOM.homeLoader.style.display = 'none';
     if (DOM.homeSections) {
