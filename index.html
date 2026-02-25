@@ -10,10 +10,11 @@
   <title>AURA Music</title>
 
   <!-- Preconnect for speed -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
   <link rel="preconnect" href="https://api.jamendo.com" />
 
-  <!-- Stylesheets -->
+  <!-- Stylesheets — fonts загружаются через @import внутри style.css -->
   <link rel="stylesheet" href="style.css" />
 
   <!-- Telegram WebApp SDK (must load before app.js) -->
@@ -208,7 +209,7 @@
         Now Playing
       </span>
 
-      <button id="full-pro-btn" type="button" aria-label="Upgrade to Pro" style="display:none">
+      <button id="full-pro-btn" type="button" aria-label="Upgrade to Pro">
         <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14" aria-hidden="true">
           <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5z"/>
         </svg>
